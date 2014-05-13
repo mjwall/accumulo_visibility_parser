@@ -11,28 +11,42 @@ module AccumuloVisibilityParser
     rule(:left_paren) { str("(") }
     rule(:right_paren) { str(")") }
     rule(:no_right_paren) { right_paren.absent? }
+    rule(:operator) { pipe | ampersand }
 
     # top level groups, hope to apply logic in tranform
-    rule(:vis) { vis_str | (left_paren >> vis_str >> right_paren) }
-    rule(:or_expr_group) {
-      (vis >> (pipe >> vis).repeat(1) >> no_right_paren) |
-      (left_paren >> vis >> (pipe >> vis).repeat(1) >> right_paren )
+    rule(:vis) { vis_str }
+    rule(:simple_or) { vis >> (pipe >> vis).repeat(1) >> ampersand.absent? }
+    rule(:simple_and) {vis >> (ampersand >> vis).repeat(1) >> pipe.absent? }
+    rule(:one_level_expr) {
+      left_paren >> (simple_or | simple_and | vis) >> right_paren
     }
-    rule(:and_expr_group) {
-      (vis >> (ampersand >> vis).repeat(1) >> no_right_paren) |
-      (left_paren >> vis >> (ampersand >> vis).repeat(1) >> right_paren)
+    rule(:one_level_expr_no_paren) {
+      simple_or | simple_and | vis
     }
-    rule(:expr) { or_expr_group | and_expr_group | vis }
-    rule(:or_expr) { expr >> (pipe >> expr).repeat(1) }
-    rule(:and_expr) { expr >> (ampersand >> expr).repeat(1) }
+    rule(:two_level_expr) {
+      (one_level_expr_no_paren >> operator >> one_level_expr ) |
+      (one_level_expr >> operator >> one_level_expr_no_paren) |
+      (one_level_expr >> operator >> one_level_expr)
+    }
+    rule(:multi_level_expr) {
+      (two_level_expr >> operator >> one_level_expr_no_paren) |
+      (two_level_expr >> (operator >> one_level_expr).repeat(1))
+    }
 
     # root
-    rule(:expression) { or_expr | and_expr | expr }
+    rule(:expression) { multi_level_expr | two_level_expr | one_level_expr | simple_and | simple_or | vis }
     root(:expression)
   end
 
   def self.parse visibility_string
+    #begin
+      VisiblityParser.new.parse(visibility_string)
+    #rescue Parslet::ParseFailed => e
+    #  puts e.cause.ascii_tree
+    #end
+  end
+
+  def self.parse_debug visibility_string
     VisiblityParser.new.parse_with_debug(visibility_string)
-    #VisiblityParser.new.parse(visibility_string)
   end
 end
