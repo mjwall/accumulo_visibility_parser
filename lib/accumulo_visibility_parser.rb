@@ -13,7 +13,14 @@ module AccumuloVisibilityParser
     rule(:no_right_paren) { right_paren.absent? }
 
     rule(:top_level) {
-      expr >> pipe >> expr | expr >> ampersand >> expr | expr
+      expr >> pipe >> expr |
+      expr >> ampersand >> expr |
+      expr >> pipe >> single |
+      single >> pipe >> expr |
+      expr >> ampersand >> single |
+      single >> ampersand >> expr |
+      expr |
+      single
     }
 
     rule(:or_expr) {
@@ -32,7 +39,7 @@ module AccumuloVisibilityParser
     }
 
     rule(:expr) {
-      and_expr | or_expr | single
+      and_expr | or_expr
     }
 
     # root
