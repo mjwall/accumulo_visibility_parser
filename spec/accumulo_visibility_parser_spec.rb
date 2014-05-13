@@ -2,6 +2,7 @@ require File.expand_path '../spec_helper.rb', __FILE__
 
 class AccumuloVisibilityParserSpec < MiniTest::Spec
 
+  # from https://github.com/apache/accumulo/blob/1.5.1/core/src/main/java/org/apache/accumulo/core/security/ColumnVisibility.java#L418
   it "should parse A" do
     assert_parse "A"
   end
@@ -10,32 +11,12 @@ class AccumuloVisibilityParserSpec < MiniTest::Spec
     assert_parse "A|B"
   end
 
-  it "should parse A&B" do
-    assert_parse "A&B"
-  end
-
-  it "should parse (A)" do
-    assert_parse "(A)"
-  end
-
-  it "should parse (A|B)" do
-    assert_parse "(A|B)"
-  end
-
-  it "should parse (A&B)" do
-    assert_parse "(A&B)"
-  end
-
   it "should parse (A|B)&(C|D)" do
     assert_parse "(A|B)&(C|D)"
   end
 
   it "should parse orange|(red&yellow)" do
     assert_parse "orange|(red&yellow)"
-  end
-
-  it "should parse A&B&C&(D|E|F)&G" do
-    assert_parse "A&B&C&(D|E|F)&G"
   end
 
   it "should NOT parse A|B&C" do
@@ -66,6 +47,28 @@ class AccumuloVisibilityParserSpec < MiniTest::Spec
     assert_parse_fail "dog|!cat"
   end
 
+  # extra tests
+
+  it "should parse A&B" do
+    assert_parse "A&B"
+  end
+
+  it "should parse (A)" do
+    assert_parse "(A)"
+  end
+
+  it "should parse (A|B)" do
+    assert_parse "(A|B)"
+  end
+
+  it "should parse (A&B)" do
+    assert_parse "(A&B)"
+  end
+
+  it "should parse A&B&C&(D|E|F)&G" do
+    assert_parse "A&B&C&(D|E|F)&G"
+  end
+
   it "should NOT parse A&B&(D|E)|F" do
     assert_parse_fail "A&B&(D|E)|F"
   end
@@ -75,7 +78,7 @@ class AccumuloVisibilityParserSpec < MiniTest::Spec
   end
 
   it "should parse (A&B&(D|E))|F" do
-    #assert_parse "(A&B&(D|E))|F"
+    assert_parse "(A&B&(D|E))|F"
   end
 
   def assert_parse s
