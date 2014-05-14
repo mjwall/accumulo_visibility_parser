@@ -10,36 +10,44 @@ module AccumuloVisibilityParser
     rule(:ampersand) { str("&") }
     rule(:left_paren) { str("(") }
     rule(:right_paren) { str(")") }
-    rule(:no_right_paren) { right_paren.absent? }
 
     rule(:top_level) {
-      expr >> pipe >> expr |
-      expr >> ampersand >> expr |
-      expr >> pipe >> single |
-      single >> pipe >> expr |
-      expr >> ampersand >> single |
-      single >> ampersand >> expr |
-      expr |
-      single
+      #(expr >> ampersand >> expr) |
+      #(expr >> pipe >> expr) |
+      expr
+    }
+
+    rule(:expr) {
+      or_expr | and_expr | single
     }
 
     rule(:or_expr) {
-      (left_paren >> vis >> (pipe >> (single | or_expr | (left_paren >> and_expr >> right_paren))).repeat(1) >> right_paren) |
-      (vis >> (pipe >> (single | or_expr | (left_paren >> and_expr >> right_paren))).repeat(1))
+      or_expr_with_paren | or_expr_no_paren
+    }
+
+    rule(:or_expr_no_paren) {
+      vis >> (pipe >> (single | or_expr | and_expr_with_paren)).repeat(1)
+    }
+
+    rule(:or_expr_with_paren) {
+      left_paren >> or_expr_no_paren >> right_paren
     }
 
     rule(:and_expr) {
-      (left_paren >> vis >> (ampersand >> (single | and_expr | (left_paren >> or_expr >> right_paren))).repeat(1) >> right_paren) |
-      (vis >> (ampersand >> (single | and_expr | (left_paren >> or_expr >> right_paren))).repeat(1))
+      and_expr_with_paren | and_expr_no_paren
+    }
+
+    rule(:and_expr_no_paren) {
+      vis >> (ampersand >> (single | and_expr | or_expr_with_paren)).repeat(1)
+    }
+
+    rule(:and_expr_with_paren) {
+      (left_paren >> and_expr_no_paren >> right_paren)
     }
 
     rule(:single) {
       (left_paren >> vis >> right_paren) |
       vis
-    }
-
-    rule(:expr) {
-      and_expr | or_expr
     }
 
     # root
