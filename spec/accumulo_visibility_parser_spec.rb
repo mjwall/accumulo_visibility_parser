@@ -8,11 +8,11 @@ class AccumuloVisibilityParserSpec < MiniTest::Spec
   end
 
   it "should parse A|B" do
-    #assert_parse "A|B"
+    assert_parse_debug "A|B"
   end
 
   it "should parse (A|B)&(C|D)" do
-    #assert_parse "(A|B)&(C|D)"
+    assert_parse "(A|B)&(C|D)"
   end
 
   it "should parse orange|(red&yellow)" do

@@ -11,55 +11,50 @@ module AccumuloVisibilityParser
     rule(:lparen) { str("(") }
     rule(:rparen) { str(")") }
 
-    rule(:single_expr) {
+    rule(:and_expr) {
+      vis >> (amp >> vis).repeat(1) |
+      vis >> amp >> vis
+    }
+
+    rule(:wrapped_and) {
+      lparen >> and_expr >> rparen |
+      and_expr
+    }
+
+    rule(:or_expr) {
+      vis >> (pipe >> vis).repeat(1) |
+      vis >> pipe >> vis
+    }
+
+    rule(:wrapped_or) {
+      lparen >> or_expr >> rparen |
+      or_expr
+    }
+
+    rule(:wrapped_vis) {
       lparen >> vis >> rparen |
       vis
     }
 
-    rule(:or_expr_no_paren) {
-      single_expr >> (pipe >> single_expr).repeat(1)
-    }
-
-    rule(:or_expr_paren) {
-      lparen >> or_expr_no_paren >> rparen
-    }
-
-    rule(:or_expr) {
-      or_expr_no_paren | or_expr_paren
-    }
-
-    rule(:and_expr_no_paren) {
-      single_expr >> (amp >> single_expr).repeat(1)
-    }
-
-    rule(:and_expr_paren) {
-      lparen >> and_expr_no_paren >> rparen
-    }
-
-    rule(:and_expr) {
-      and_expr_paren | and_expr_no_paren
-    }
-
     rule(:expr) {
-      or_expr | and_expr | single_expr
+      wrapped_and | wrapped_or | wrapped_vis
     }
 
-    rule(:nested_and) {
-      #expr >> amp >> or_expr_paren >> expr |
-      expr >> amp >> or_expr_paren #|
-      #or_expr_paren >> amp >> expr
+    rule(:top_level_or) {
+      expr >> (pipe >> expr).repeat(1)
     }
 
-    rule(:nested_or) {
-      #expr >> pipe >> and_expr_paren >> expr |
-      expr >> pipe >> and_expr_paren  #|
-      #and_expr_paren >> pipe >> expr
+    rule(:top_level_and) {
+      expr >> (amp >> expr).repeat(1)
+    }
+
+    rule(:top_level_expr) {
+      top_level_or | top_level_and | expr
     }
 
     rule(:top_level) {
-      nested_or |
-      nested_and |
-      expr
+      lparen >> top_level_expr >> rparen |
+      top_level_expr
     }
 
     # root
