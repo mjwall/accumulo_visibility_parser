@@ -8,7 +8,7 @@ class AccumuloVisibilityParserSpec < MiniTest::Spec
   end
 
   it "should parse A|B" do
-    assert_parse_debug "A|B"
+    assert_parse "A|B"
   end
 
   it "should parse (A|B)&(C|D)" do
@@ -16,57 +16,57 @@ class AccumuloVisibilityParserSpec < MiniTest::Spec
   end
 
   it "should parse orange|(red&yellow)" do
-    #assert_parse "orange|(red&yellow)"
+    assert_parse "orange|(red&yellow)"
   end
 
   it "should NOT parse A|B&C" do
-    #assert_parse_fail "A|B&C"
+    assert_parse_fail "A|B&C"
   end
 
   it "should NOT parse A=B" do
-    #assert_parse_fail "A=B"
+    assert_parse_fail "A=B"
   end
 
   it "should NOT parse A|B|" do
-    #assert_parse_fail "A|B|"
+    assert_parse_fail "A|B|"
   end
 
   it "should NOT parse A&|B" do
-    #assert_parse_fail "A&|B"
+    assert_parse_fail "A&|B"
   end
 
   it "should NOT parse ()" do
-    #assert_parse_fail "()"
+    assert_parse_fail "()"
   end
 
   it "should NOT parse )" do
-    #assert_parse_fail ")"
+    assert_parse_fail ")"
   end
 
   it "should NOT parse dog|!cat" do
-    #assert_parse_fail "dog|!cat"
+    assert_parse_fail "dog|!cat"
   end
 
   # extra tests
 
   it "should parse A&B" do
-    #assert_parse "A&B"
+    assert_parse "A&B"
   end
 
   it "should parse (A)" do
-    #assert_parse "(A)"
+    assert_parse "(A)"
   end
 
   it "should parse (A|B)" do
-    #assert_parse "(A|B)"
+    assert_parse "(A|B)"
   end
 
   it "should parse (A&B)" do
-    #assert_parse "(A&B)"
+    assert_parse "(A&B)"
   end
 
   it "should parse A&B&(D|E)&F" do
-    #assert_parse_debug "A&B&(D|E)&F"
+    assert_parse_debug "A&B&(D|E)&F"
   end
 
   it "should parse (A&B&(D|E))|F" do
@@ -82,12 +82,15 @@ class AccumuloVisibilityParserSpec < MiniTest::Spec
   end
 
   def assert_parse s
-    AccumuloVisibilityParser.parse(s).str.must_equal s
+    AccumuloVisibilityParser.parse(s).str.must_equal "(#{s})"
   end
 
   def assert_parse_debug s
     puts "Testing #{s}"
-    AccumuloVisibilityParser.parse_debug(s)
+    begin
+      puts AccumuloVisibilityParser.parse_debug(s)
+    rescue Parslet::ParseFailed
+    end
     assert_parse s
   end
 
@@ -98,5 +101,11 @@ class AccumuloVisibilityParserSpec < MiniTest::Spec
     rescue Parslet::ParseFailed
       # do nothing, we should be here
     end
+  end
+
+  def assert_parse_fail_debug s
+    puts "Testing #{s}"
+    puts AccumuloVisibilityParser.parse_debug(s)
+    assert_parse_fail s
   end
 end

@@ -11,61 +11,70 @@ module AccumuloVisibilityParser
     rule(:lparen) { str("(") }
     rule(:rparen) { str(")") }
 
-    rule(:and_expr) {
-      vis >> (amp >> vis).repeat(1) |
-      vis >> amp >> vis
+    #grammar, assumes entire thing wrapped in parens
+    rule(:expression) {
+      lparen >> body >> rparen
     }
 
-    rule(:wrapped_and) {
-      lparen >> and_expr >> rparen |
-      and_expr
+    rule(:body) {
+      and_expr |
+      or_expr |
+      expression |
+      vis
     }
 
     rule(:or_expr) {
-      vis >> (pipe >> vis).repeat(1) |
-      vis >> pipe >> vis
+      lparen >> left_or >> pipe >> right_or >> rparen |
+      left_or >> pipe >> right_or
     }
 
-    rule(:wrapped_or) {
-      lparen >> or_expr >> rparen |
-      or_expr
-    }
-
-    rule(:wrapped_vis) {
+    rule(:left_or) {
+      lparen >> vis >> pipe >> or_expr >> rparen |
+      lparen >> and_expr >> rparen |
+      vis >> pipe >> or_expr |
       lparen >> vis >> rparen |
       vis
     }
 
-    rule(:expr) {
-      wrapped_and | wrapped_or | wrapped_vis
+    rule(:right_or) {
+      lparen >> or_expr >> pipe >> vis >> rparen |
+      lparen >> and_expr >> rparen |
+      or_expr >> pipe >> vis |
+      lparen >> vis >> rparen |
+      vis
     }
 
-    rule(:top_level_or) {
-      expr >> (pipe >> expr).repeat(1)
+    rule(:and_expr) {
+      lparen >> left_and >> amp >> right_and >> rparen |
+      left_and >> amp >> right_and
     }
 
-    rule(:top_level_and) {
-      expr >> (amp >> expr).repeat(1)
+    rule(:left_and) {
+      lparen >> vis >> amp >> and_expr >> rparen |
+      lparen >> or_expr >> rparen |
+      vis >> amp >> and_expr |
+      lparen >> vis >> rparen |
+      vis
     }
 
-    rule(:top_level_expr) {
-      top_level_or | top_level_and | expr
-    }
-
-    rule(:top_level) {
-      lparen >> top_level_expr >> rparen |
-      top_level_expr
+    rule(:right_and) {
+      lparen >> and_expr >> amp >> vis >> rparen |
+      lparen >> or_expr >> rparen |
+      and_expr >> amp >> vis |
+      lparen >> vis >> rparen |
+      vis
     }
 
     # root
-    root :top_level
+    root :expression
   end
 
   def self.parse visibility_string
-    VisiblityParser.new.parse(visibility_string)
+    # always append parens
+    VisiblityParser.new.parse("(#{visibility_string})")
   end
 
   def self.parse_debug visibility_string
-    VisiblityParser.new.parse_with_debug(visibility_string)
+    VisiblityParser.new.parse_with_debug("(#{visibility_string})")
   end
 end
