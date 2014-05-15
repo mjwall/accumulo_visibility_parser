@@ -66,19 +66,19 @@ class AccumuloVisibilityParserSpec < MiniTest::Spec
   end
 
   it "should parse A&B&(D|E)&F" do
-    assert_parse_debug "A&B&(D|E)&F"
+    assert_parse "A&B&(D|E)&F"
   end
 
   it "should parse (A&B&(D|E))|F" do
-    #assert_parse "(A&B&(D|E))|F"
+    assert_parse "(A&B&(D|E))|F"
   end
 
   it "should parse A&B&C&(D|E|F)&G" do
-    #assert_parse "A&B&C&(D|E|F)&G"
+    assert_parse "(D|E|F)"
   end
 
   it "should NOT parse A&B&(D|E)|F" do
-    #assert_parse_fail "A&B&(D|E)|F"
+    assert_parse_fail "A&B&(D|E)|F"
   end
 
   def assert_parse s
