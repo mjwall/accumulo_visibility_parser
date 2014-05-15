@@ -23,46 +23,28 @@ module AccumuloVisibilityParser
       vis
     }
 
+    rule(:or_term) {
+      vis | and_block
+    }
+
+    rule(:or_block) {
+      lparen >> or_expr >> rparen
+    }
+
     rule(:or_expr) {
-      lparen >> left_or >> pipe >> right_or >> rparen |
-      left_or >> pipe >> right_or
+      or_term >> (pipe >> or_term).repeat(1)
     }
 
-    rule(:left_or) {
-      lparen >> vis >> pipe >> or_expr >> rparen |
-      lparen >> and_expr >> rparen |
-      vis >> pipe >> or_expr |
-      lparen >> vis >> rparen |
-      vis
+    rule(:and_term) {
+      vis | or_block
     }
 
-    rule(:right_or) {
-      lparen >> or_expr >> pipe >> vis >> rparen |
-      lparen >> and_expr >> rparen |
-      or_expr >> pipe >> vis |
-      lparen >> vis >> rparen |
-      vis
+    rule(:and_block) {
+      lparen >> and_expr >> rparen
     }
 
     rule(:and_expr) {
-      lparen >> left_and >> amp >> right_and >> rparen |
-      left_and >> amp >> right_and
-    }
-
-    rule(:left_and) {
-      lparen >> vis >> amp >> and_expr >> rparen |
-      lparen >> or_expr >> rparen |
-      vis >> amp >> and_expr |
-      lparen >> vis >> rparen |
-      vis
-    }
-
-    rule(:right_and) {
-      lparen >> and_expr >> amp >> vis >> rparen |
-      lparen >> or_expr >> rparen |
-      and_expr >> amp >> vis |
-      lparen >> vis >> rparen |
-      vis
+      and_term >> (amp >> and_term).repeat(1)
     }
 
     # root
