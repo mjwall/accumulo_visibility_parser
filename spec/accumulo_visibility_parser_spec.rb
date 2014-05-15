@@ -81,6 +81,14 @@ class AccumuloVisibilityParserSpec < MiniTest::Spec
     assert_parse_fail "A&B&(D|E)|F"
   end
 
+  it "should parse (A&B)|(A&D&(F|G))|H" do
+    assert_parse  "(A&B)|(A&D&(F|G))|H"
+  end
+
+  it "should NOT parse (A&B)|(A&D&(F|G))&H" do
+    assert_parse  "(A&B)|(A&D&(F|G))&H"
+  end
+
   def assert_parse s
     AccumuloVisibilityParser.parse(s).str.must_equal "(#{s})"
   end

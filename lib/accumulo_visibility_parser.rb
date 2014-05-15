@@ -11,7 +11,8 @@ module AccumuloVisibilityParser
     rule(:lparen) { str("(") }
     rule(:rparen) { str(")") }
 
-    #grammar, assumes entire thing wrapped in parens
+    #grammar
+    # assumes entire thing wrapped in parens, which are added in the parse method
     rule(:expression) {
       lparen >> body >> rparen
     }
@@ -24,7 +25,7 @@ module AccumuloVisibilityParser
     }
 
     rule(:or_term) {
-      vis | and_block
+      and_block | vis
     }
 
     rule(:or_block) {
@@ -36,7 +37,7 @@ module AccumuloVisibilityParser
     }
 
     rule(:and_term) {
-      vis | or_block
+      or_block | vis
     }
 
     rule(:and_block) {
