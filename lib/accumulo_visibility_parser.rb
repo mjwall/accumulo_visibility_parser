@@ -5,7 +5,7 @@ require 'parslet/convenience'
 module AccumuloVisibilityParser
   class VisiblityParser < Parslet::Parser
     #tokens
-    rule(:vis) { match['a-zA-Z0-9_-'].repeat(1) }
+    rule(:vis) { match['a-zA-Z0-9_-'].repeat(1).as(:vis) }
     rule(:pipe) { str("|") }
     rule(:amp) { str("&") }
     rule(:lparen) { str("(") }
@@ -33,7 +33,7 @@ module AccumuloVisibilityParser
     }
 
     rule(:or_expr) {
-      or_term >> (pipe >> or_term).repeat(1)
+      (or_term >> (pipe >> (or_block | or_term)).repeat(1)).as(:or_expr)
     }
 
     rule(:and_term) {
@@ -45,7 +45,7 @@ module AccumuloVisibilityParser
     }
 
     rule(:and_expr) {
-      and_term >> (amp >> and_term).repeat(1)
+     (and_term >> (amp >> (and_block | and_term)).repeat(1)).as(:and_expr)
     }
 
     # root
