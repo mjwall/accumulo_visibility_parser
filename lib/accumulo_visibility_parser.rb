@@ -5,14 +5,14 @@ require 'parslet/convenience'
 module AccumuloVisibilityParser
   class VisiblityParser < Parslet::Parser
     #tokens
-    rule(:vis) { match['a-zA-Z0-9_-'].repeat(1).as(:vis) }
+    rule(:vis_token) { match['a-zA-Z0-9_-'].repeat(1).as(:vis) }
+    rule(:vis) { lparen >> vis_token >> rparen | vis_token }
     rule(:pipe) { str("|") }
     rule(:amp) { str("&") }
     rule(:lparen) { str("(") }
     rule(:rparen) { str(")") }
 
     #grammar
-    # assumes entire thing wrapped in parens, which are added in the parse method
     rule(:expression) {
       lparen >> body >> rparen
     }
@@ -52,11 +52,20 @@ module AccumuloVisibilityParser
     root :expression
   end
 
-  def self.parse visibility_string
-    # always append parens
-    VisiblityParser.new.parse("(#{visibility_string})")
+  class VisibilityTransform < Parslet::Transform
+    rule(:and_expr => subtree(:and_expr)) {{ :and => and_expr }}
+    rule(:or_expr => subtree(:or_expr))  {{ :or => or_expr }}
+    rule(:vis => simple(:vis)) { vis.str }
   end
 
+  # returns a hash representing the expression
+  def self.parse visibility_string
+    # always append outer parens to make it consistent
+    VisibilityTransform.new.apply(VisiblityParser.new.parse("(#{visibility_string})"))
+  end
+
+  private
+  # just a helper to spit out debug info, only used in tests, don't use for real
   def self.parse_debug visibility_string
     VisiblityParser.new.parse_with_debug("(#{visibility_string})")
   end
