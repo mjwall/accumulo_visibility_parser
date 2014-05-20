@@ -1,7 +1,7 @@
 require "accumulo_visibility_parser/version"
 require "parslet"
 require "parslet/convenience"
-require "accumulo_visibility_parser/evaluator"
+require "accumulo_visibility_parser/role_checker"
 
 module AccumuloVisibilityParser
   class VisiblityParser < Parslet::Parser

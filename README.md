@@ -1,6 +1,6 @@
 # AccumuloVisibilityParser
 
-TODO: Write a gem description
+A Ruby Gem to parse Accumulo Visibility Strings
 
 ## Installation
 
@@ -18,7 +18,17 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+This gem is designed to be used for parsing Accumulo Column
+Visibility strings and optionally evaluating against an array of
+Authorizations.  It **SHOULD NOT** be used to protect data.  This gem
+is not guarenteed to use the same logic as Accumulo to protect your
+data.  Additionally, this gem has only been tested against Accumulo
+1.4.  It may not work correctly against other versions.
+
+Use this gem after data has already been returned with proper security
+controls. A proper example usage is the UI layer in a Rails
+application where you want to change the way data is displayed based
+on visiblity.
 
 ## Contributing
 

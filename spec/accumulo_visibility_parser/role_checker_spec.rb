@@ -1,27 +1,27 @@
 require File.expand_path '../../spec_helper.rb', __FILE__
 
-class EvaluatorSpec < MiniTest::Spec
+class RoleCheckerSpec < MiniTest::Spec
 
   before do
-    @e = AccumuloVisibilityParser::Evaluator.new(['A','B','C','E','G'])
+    @e = AccumuloVisibilityParser::RoleChecker.new(['A','B','C','E','G'])
   end
 
   it "#new should default to empty roles" do
-    AccumuloVisibilityParser::Evaluator.new.roles.must_equal []
+    AccumuloVisibilityParser::RoleChecker.new.roles.must_equal []
   end
 
   it "#new should handle a single role" do
-    AccumuloVisibilityParser::Evaluator.new("A").roles.must_equal ["A"]
+    AccumuloVisibilityParser::RoleChecker.new("A").roles.must_equal ["A"]
   end
 
   it "#new should handle roles" do
     roles = ['A','B']
-    AccumuloVisibilityParser::Evaluator.new(roles).roles.must_equal roles
+    AccumuloVisibilityParser::RoleChecker.new(roles).roles.must_equal roles
   end
 
   it "#new should handle nested roles" do
     roles = ['A','B',['C','D']]
-    AccumuloVisibilityParser::Evaluator.new(roles).roles.must_equal roles.flatten
+    AccumuloVisibilityParser::RoleChecker.new(roles).roles.must_equal roles.flatten
   end
 
   it "#roles= should fail" do
@@ -50,26 +50,50 @@ class EvaluatorSpec < MiniTest::Spec
   end
 
   it "#evaluate should return true if no roles and no visibility" do
-    AccumuloVisibilityParser::Evaluator.new.evaluate.must_equal true
+    AccumuloVisibilityParser::RoleChecker.new.evaluate.must_equal true
   end
 
   it "#evaluate should return false if visibility but no roles" do
-    AccumuloVisibilityParser::Evaluator.new.evaluate("A&B").must_equal false
+    AccumuloVisibilityParser::RoleChecker.new.evaluate("A&B").must_equal false
   end
 
-  it "#evaluate should return true when roles do satisfy visibility" do
+  it "#evaluate should return true when roles do satisfy AND visibility" do
     @e.evaluate("A&B").must_equal true
+  end
+
+  it "#evaluate should return true when roles do satisfy OR visibility" do
     @e.evaluate("A|B").must_equal true
+  end
+
+  it "#evaluate should return true when roles do satisfy AND visibility with nested OR" do
     @e.evaluate("A&B&(C|D)").must_equal true
+  end
+
+  it "#evaluate should return true when roles do satisfy AND visibility double nested OR" do
     @e.evaluate("(C|D)&(A|B)").must_equal true
+  end
+
+  it "#evaluate should return true when roles do satisfy AND visibility inner nested OR" do
     @e.evaluate("A&B&C&(D|E|F)&G").must_equal true
   end
 
-  it "#evaluate should return false when roles do NOT satisfy visibility" do
+  it "#evaluate should return false when roles do NOT satisfy AND visibility" do
     @e.evaluate("A&J").must_equal false
+  end
+
+  it "#evaluate should return false when roles do NOT satisfy OR visibility" do
     @e.evaluate("K|L").must_equal false
+  end
+
+  it "#evaluate should return false when roles do NOT satisfy AND visibility with nested OR" do
     @e.evaluate("A&B&(F|D)").must_equal false
+  end
+
+  it "#evaluate should return false when roles do NOT satisfy AND visibility double nested OR" do
     @e.evaluate("(K|H)&(A|B)").must_equal false
+  end
+
+  it "#evaluate should return false when roles do NOT satisfy AND visibility inner nested OR" do
     @e.evaluate("A&B&C&(D|E|F)&H").must_equal false
   end
 end
